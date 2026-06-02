@@ -19,6 +19,94 @@ WHT = "\033[97m"
 
 LYRICS_API = "https://api.lyrics.ovh/v1"
 
+# Built-in offline library — used as fallback when the network is unavailable
+OFFLINE_LIBRARY = {
+    ("rihanna", "we found love"): (
+        "Yellow diamonds in the light\n"
+        "And we're standing side by side\n"
+        "As your shadow crosses mine\n"
+        "What it takes to come alive\n\n"
+        "It's the way I'm feeling\n"
+        "I just can't deny\n"
+        "But I've gotta let it go\n\n"
+        "We found love in a hopeless place\n"
+        "We found love in a hopeless place\n"
+        "We found love in a hopeless place\n"
+        "We found love in a hopeless place"
+    ),
+    ("coldplay", "yellow"): (
+        "Look at the stars\n"
+        "Look how they shine for you\n"
+        "And everything you do\n"
+        "Yeah, they were all yellow\n\n"
+        "I came along\n"
+        "I wrote a song for you\n"
+        "And all the things you do\n"
+        "And it was called Yellow\n\n"
+        "So then I took my turn\n"
+        "Oh, what a thing to have done\n"
+        "And it was all yellow\n\n"
+        "Your skin, oh yeah, your skin and bones\n"
+        "Turn into something beautiful\n"
+        "You know, you know I love you so\n"
+        "You know I love you so"
+    ),
+    ("queen", "bohemian rhapsody"): (
+        "Is this the real life?\n"
+        "Is this just fantasy?\n"
+        "Caught in a landslide\n"
+        "No escape from reality\n\n"
+        "Open your eyes\n"
+        "Look up to the skies and see\n"
+        "I'm just a poor boy, I need no sympathy\n"
+        "Because it's easy come, easy go\n"
+        "Little high, little low\n"
+        "Anyway the wind blows\n"
+        "Doesn't really matter to me, to me\n\n"
+        "Mama, just killed a man\n"
+        "Put a gun against his head\n"
+        "Pulled my trigger, now he's dead\n"
+        "Mama, life had just begun\n"
+        "But now I've gone and thrown it all away"
+    ),
+    ("journey", "don't stop believin'"): (
+        "Just a small town girl\n"
+        "Livin' in a lonely world\n"
+        "She took the midnight train goin' anywhere\n\n"
+        "Just a city boy\n"
+        "Born and raised in South Detroit\n"
+        "He took the midnight train goin' anywhere\n\n"
+        "A singer in a smoky room\n"
+        "The smell of wine and cheap perfume\n"
+        "For a smile they can share the night\n"
+        "It goes on and on and on and on\n\n"
+        "Don't stop believin'\n"
+        "Hold on to the feelin'\n"
+        "Streetlight, people\n"
+        "Don't stop believin'\n"
+        "Hold on!"
+    ),
+    ("bon jovi", "livin' on a prayer"): (
+        "Tommy used to work on the docks\n"
+        "Union's been on strike\n"
+        "He's down on his luck, it's tough\n"
+        "So tough\n\n"
+        "Gina works the diner all day\n"
+        "Working for her man\n"
+        "She brings home her pay\n"
+        "For love, mm, for love\n\n"
+        "She says, we've gotta hold on to what we've got\n"
+        "'Cause it doesn't make a difference\n"
+        "If we make it or not\n"
+        "We've got each other and that's a lot\n"
+        "For love, we'll give it a shot\n\n"
+        "Whoa, we're half way there\n"
+        "Whoa, livin' on a prayer\n"
+        "Take my hand, we'll make it I swear\n"
+        "Whoa, livin' on a prayer"
+    ),
+}
+
 BANNER = f"""
 {MGT}{B}
    ♪ ♫   L O V E - S I N G I N G   ♫ ♪
@@ -30,15 +118,21 @@ BANNER = f"""
 # ── Lyrics fetching ──────────────────────────────────────────────────────────
 
 def fetch_lyrics(artist: str, title: str) -> str | None:
-    """Return lyrics string from lyrics.ovh, or None on failure."""
+    """Return lyrics from lyrics.ovh, falling back to the offline library."""
     try:
         url = f"{LYRICS_API}/{requests.utils.quote(artist)}/{requests.utils.quote(title)}"
         resp = requests.get(url, timeout=10)
         if resp.status_code == 200:
             return resp.json().get("lyrics")
-    except requests.RequestException as exc:
-        print(f"{RED}Network error: {exc}{R}")
-    return None
+    except requests.RequestException:
+        pass
+
+    # Offline fallback
+    key = (artist.strip().lower(), title.strip().lower())
+    result = OFFLINE_LIBRARY.get(key)
+    if result:
+        print(f"{DIM}  (showing offline lyrics — no internet connection){R}")
+    return result
 
 
 # ── Display ──────────────────────────────────────────────────────────────────
