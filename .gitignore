@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Love-Singing saved lyrics (user-generated)
+saved_lyrics/
